@@ -12,7 +12,9 @@ mkdir sam
 cd fastq
 
 ls *.fastq|while read id
-do hisat2 -p 4 --dta -x $index --known-splicesite-infile $knonwSplitSite $id -S ../sam/${id%.*}.sam &>> ../sam/alignmentSummary.txt
+do hisat2 -p 4 --dta -x $index \
+--known-splicesite-infile $knonwSplitSite $id \
+-S ../sam/${id%.*}.sam &>> ../sam/alignmentSummary.txt
 done
 
 ## covert sam to bam
@@ -58,8 +60,15 @@ mv *.csv quantity
 ## obtain FPKM
 cd quantity
 
-ls $workDir/ballgown/|while read id; do less $workDir/ballgown/$id/$id.bg.gtf|awk '$3=="transcript"'|grep -Eo 'transcript_id \"\w+|transcript_id \"\w+\.\w+\.\w+'|cut -d\" -f 2 > $id.t;done
-ls $workDir/ballgown/|while read id; do less $workDir/ballgown/$id/$id.bg.gtf|awk '$3=="transcript"'|grep -Eo 'FPKM \"\w+\.\w+'|awk -F\" '{print$2}' > $id.value;done
+ls $workDir/ballgown/|while read id
+do 
+less $workDir/ballgown/$id/$id.bg.gtf| \
+awk '$3=="transcript"'|grep -Eo 'transcript_id \"\w+|transcript_id \"\w+\.\w+\.\w+'|cut -d\" -f 2 > $id.t
+done
+ls $workDir/ballgown/|while read id 
+do
+less $workDir/ballgown/$id/$id.bg.gtf|awk '$3=="transcript"'|grep -Eo 'FPKM \"\w+\.\w+'|awk -F\" '{print$2}' > $id.value
+done
 ls $workDir/ballgown/|while read id; do paste $id.t $id.value > $id.FPKM;done
 ls *.FPKM|while read id;do less $id|sort -k 1 > ${id%.*}.sorted.FPKM;done
 echo "transcript" > FPKM
